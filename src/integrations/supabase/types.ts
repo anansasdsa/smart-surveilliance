@@ -188,6 +188,38 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
+      },
+      push_subscriptions: {
+        Row: {
+          id: string
+          endpoint: string
+          keys: Json
+          created_at: string
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          endpoint: string
+          keys: Json
+          created_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          endpoint?: string
+          keys?: Json
+          created_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey",
+            columns: ["user_id"],
+            isOneToOne: false,
+            referencedRelation: "users",
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

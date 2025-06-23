@@ -33,7 +33,7 @@ const Recent = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [detailedData, setDetailedData] = useState<DetailedHistoricalData | null>(null);
   const navigate = useNavigate();
-  const { calculateAverageDwellTime } = useAnalytics();
+  const { calculateAverageDwellTime, getInterestedChartData } = useAnalytics();
 
   // Load real detailed data when date is selected
   useEffect(() => {
@@ -69,40 +69,21 @@ const Recent = () => {
           console.error('Error fetching theft alerts:', alertsError);
         }
 
-        // Get visitor sessions for hourly breakdown
-        const { data: visitorData, error: visitorError } = await supabase
-          .from('visitor_sessions')
-          .select('timestamp, direction')
-          .eq('date', selectedDateStr)
-          .order('timestamp', { ascending: true });
-
-        if (visitorError) {
-          console.error('Error fetching visitor sessions:', visitorError);
+        // Get interested visitors for hourly breakdown
+        const hourlyVisitors = await getInterestedChartData(selectedDateStr);
+        let peakHour = 12;
+        let maxVisitors = 0;
+        if (hourlyVisitors && hourlyVisitors.length > 0) {
+          hourlyVisitors.forEach(({ hour, visitors }) => {
+            if (visitors > maxVisitors) {
+              maxVisitors = visitors;
+              peakHour = hour;
+            }
+          });
         }
 
         // Get average dwell time for the selected date
         const avgDwellTime = await calculateAverageDwellTime(selectedDateStr);
-
-        // Calculate hourly visitors
-        const hourlyVisitors = Array.from({ length: 13 }, (_, i) => ({ hour: i + 9, visitors: 0 }));
-        let peakHour = 12;
-        let maxVisitors = 0;
-
-        if (visitorData && visitorData.length > 0) {
-          visitorData.forEach(session => {
-            if (session.timestamp && session.direction === 'in') {
-              const hour = new Date(session.timestamp).getHours();
-              const hourIndex = hour - 9;
-              if (hourIndex >= 0 && hourIndex < 13) {
-                hourlyVisitors[hourIndex].visitors++;
-                if (hourlyVisitors[hourIndex].visitors > maxVisitors) {
-                  maxVisitors = hourlyVisitors[hourIndex].visitors;
-                  peakHour = hour;
-                }
-              }
-            }
-          });
-        }
 
         // Format theft alerts
         const theftAlertDetails = (alertsData || []).map((alert, index) => ({
@@ -164,7 +145,7 @@ const Recent = () => {
     };
 
     loadDetailedData();
-  }, [selectedDate, calculateAverageDwellTime]);
+  }, [selectedDate, calculateAverageDwellTime, getInterestedChartData]);
 
   // Disable dates older than 1 month and future dates
   const oneMonthAgo = new Date();

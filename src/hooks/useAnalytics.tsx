@@ -357,6 +357,54 @@ export const useAnalytics = () => {
     }
   };
 
+  // Get interested visitor data for chart (hourly breakdown)
+  const getInterestedChartData = async (date?: string) => {
+    try {
+      const targetDate = date || new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('interest_events')
+        .select('timestamp')
+        .eq('date', targetDate)
+        .order('timestamp', { ascending: true });
+
+      if (error) throw error;
+
+      // Initialize hourly data
+      const hourlyData: { [hour: number]: number } = {};
+      for (let hour = 9; hour <= 21; hour++) {
+        hourlyData[hour] = 0;
+      }
+
+      // Count interest events by hour
+      if (data && data.length > 0) {
+        data.forEach(event => {
+          if (event.timestamp) {
+            const hour = new Date(event.timestamp).getHours();
+            if (hourlyData[hour] !== undefined) {
+              hourlyData[hour]++;
+            }
+          }
+        });
+      }
+
+      // Convert to chart format
+      const chartData = Object.keys(hourlyData).map(hour => ({
+        hour: parseInt(hour),
+        visitors: hourlyData[hour]
+      }));
+
+      console.log('Interested visitor chart data:', chartData);
+      return chartData;
+    } catch (error) {
+      console.error('Error fetching interested visitor chart data:', error);
+      // Return empty data if error
+      return Array.from({ length: 13 }, (_, i) => ({
+        hour: i + 9,
+        visitors: 0
+      }));
+    }
+  };
+
   return {
     saveVisitorSession,
     saveTheftAlert,
@@ -368,5 +416,6 @@ export const useAnalytics = () => {
     calculateAverageDwellTime,
     getDwellTimeForDates,
     getVisitorChartData,
+    getInterestedChartData,
   };
 };

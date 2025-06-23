@@ -5,14 +5,18 @@ import { TheftAlertLog } from '../components/TheftAlertLog';
 import { HistoricalRecords } from '../components/HistoricalRecords';
 import { Header } from '../components/Header';
 import { useAnalytics } from '../hooks/useAnalytics';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 
 const Index = () => {
+  usePushNotifications(null); // Call with null or userId if available
+
   const {
     getRecentTheftAlerts,
     getTodayAnalytics,
     calculateAverageDwellTime,
     updateTodayAnalytics,
     getVisitorChartData,
+    getInterestedChartData,
   } = useAnalytics();
 
   const [metrics, setMetrics] = useState({
@@ -75,7 +79,7 @@ const Index = () => {
       }
 
       // Load visitor chart data
-      const chartData = await getVisitorChartData();
+      const chartData = await getInterestedChartData();
       setVisitorsData(chartData);
 
       // Load today's theft alerts (daily ones)
@@ -133,7 +137,7 @@ const Index = () => {
       }
 
       // Update visitor chart data
-      const chartData = await getVisitorChartData();
+      const chartData = await getInterestedChartData();
       setVisitorsData(chartData);
 
       // Check for new daily theft alerts
