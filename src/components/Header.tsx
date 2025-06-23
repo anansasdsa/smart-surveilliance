@@ -36,7 +36,11 @@ export const Header = () => {
         <div className="flex items-center justify-between">
           {/* Left section with logo - made bigger */}
           <div className="flex items-center space-x-4">
-            {/* Logo removed as requested */}
+            <img 
+              src="/lovable-uploads/27689ce8-eb7d-4f66-831a-08349011444f.png" 
+              alt="Digital Vision Logo" 
+              className="h-40 w-auto"
+            />
           </div>
 
           {/* Center section with title */}
